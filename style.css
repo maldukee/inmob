@@ -1,28 +1,25 @@
 body { font-family: sans-serif; background: #f4f4f9; margin: 0; padding: 15px; display: flex; justify-content: center; }
 .win { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
 
-.quick-calc { background: #f0f7ff; border: 2px solid #007bff; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: left; }
-.quick-calc label { font-size: 11px; font-weight: bold; color: #007bff; display: block; margin-bottom: 3px; }
-.quick-calc input { width: 90%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+/* БЛОКНОТ */
+.notebook-section { text-align: left; margin-bottom: 15px; }
+.notebook-section label { font-size: 12px; font-weight: bold; color: #444; }
+#quick-note { width: 94%; height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: none; margin-top: 5px; background: #fffdf0; }
 
-/* Сетка для симок */
-.sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-.sim-grid input { width: 80% !important; padding: 6px !important; font-size: 12px !important; }
+.quick-calc { background: #f0f7ff; border: 2px solid #007bff; border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: left; }
+.quick-calc label { font-size: 11px; font-weight: bold; color: #007bff; }
+.sim-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; margin-top: 5px; }
+.sim-grid input { width: 80% !important; padding: 5px !important; font-size: 11px !important; }
 
-.quick-result { margin-top: 10px; font-size: 14px; border-top: 1px solid #d1e3ff; padding-top: 5px; }
-#quick-res { font-weight: bold; color: #28a745; font-size: 20px; }
-
-.login-buttons button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; background: #007bff; color: white; cursor: pointer; }
-.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 10px 0; background: #eee; padding: 5px; border-radius: 8px; }
-.day-btn { padding: 6px 0; font-size: 12px; border: 1px solid #ddd; background: #fff; cursor: pointer; border-radius: 3px; }
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+.day-btn { padding: 8px 0; font-size: 11px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; }
 .active-day { background: #28a745 !important; color: white; }
-.zp-box { background: #e7f3ff; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-.zp-value { font-size: 28px; font-weight: bold; color: #0056b3; }
-.modal { position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-.modal-content { background: white; margin: 25% auto; padding: 20px; width: 80%; border-radius: 12px; position: relative; }
+
+.zp-box { background: #e7f3ff; padding: 10px; border-radius: 8px; margin-top: 10px; }
+.zp-value { font-size: 24px; font-weight: bold; color: #0056b3; }
+
+.saved-note-view { background: #fffdf0; padding: 10px; border-radius: 5px; font-size: 13px; text-align: left; margin-bottom: 10px; border-left: 3px solid #f1c40f; white-space: pre-wrap; }
+.modal-content { background: white; margin: 20% auto; padding: 20px; width: 85%; border-radius: 15px; position: relative; }
 .close { position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; }
-.adm { background: #fff3cd; padding: 15px; border-radius: 10px; border: 1px solid #ffeeba; }
-.adm input { width: 85%; padding: 6px; margin: 3px 0; border: 1px solid #ccc; border-radius: 5px; }
-.calendar-toggle-btn { background: #6c757d; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; cursor: pointer; margin-bottom: 10px; }
-.exit-btn { font-size: 12px; color: #999; cursor: pointer; margin-top: 15px; }
-.delete-btn { background: #dc3545; color: white; border: none; padding: 8px; border-radius: 5px; margin-top: 10px; cursor: pointer; }
+.adm { background: #fff3cd; padding: 15px; border-radius: 10px; margin-top: 10px; }
+.adm input { width: 90%; margin: 3px 0; padding: 5px; }

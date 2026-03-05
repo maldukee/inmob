@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Учет Зарплаты v2.2</title>
+    <title>Учет Зарплаты v2.3</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,26 +19,31 @@
     <div id="screen-main" class="win" style="display:none;">
         <h3 id="display-user"></h3>
 
+        <div class="notebook-section">
+            <label>📝 Блокнот смены (записи):</label>
+            <textarea id="quick-note" placeholder="Пример: товар 5000 нал, сим2 3шт, настройка 1000..." oninput="app.saveNote()"></textarea>
+            <p style="font-size: 10px; color: #666;">* Данные из блокнота сохраняются автоматически</p>
+        </div>
+
         <div class="quick-calc">
-            <label>Товар (₽):</label>
-            <input type="number" id="quick-tov" placeholder="Сумма..." oninput="app.calcQuick()">
-            
-            <label style="margin-top:10px;">Сим-карты (кол-во):</label>
+            <label>Калькулятор прибыли (₽):</label>
+            <input type="number" id="quick-tov" placeholder="Товар ₽" oninput="app.calcQuick()">
             <div class="sim-grid">
-                <input type="number" id="q-s1" placeholder="Вид 1" oninput="app.calcQuick()">
-                <input type="number" id="q-s2" placeholder="Вид 2" oninput="app.calcQuick()">
-                <input type="number" id="q-s3" placeholder="Вид 3" oninput="app.calcQuick()">
-                <input type="number" id="q-s4" placeholder="Вид 4" oninput="app.calcQuick()">
+                <input type="number" id="q-s1" placeholder="Сим1" oninput="app.calcQuick()">
+                <input type="number" id="q-s2" placeholder="Сим2" oninput="app.calcQuick()">
+                <input type="number" id="q-s3" placeholder="Сим3" oninput="app.calcQuick()">
+                <input type="number" id="q-s4" placeholder="Сим4" oninput="app.calcQuick()">
             </div>
+            <input type="number" id="q-usl" placeholder="Настройки/Пленки ₽" oninput="app.calcQuick()" style="margin-top:5px; width: 90%;">
             
             <div class="quick-result">Итог за сегодня: <span id="quick-res">0</span> ₽</div>
         </div>
 
-        <button class="calendar-toggle-btn" onclick="app.toggleCalendar()">📅 ГРАФИК И ДЕТАЛИ</button>
+        <button class="calendar-toggle-btn" onclick="app.toggleCalendar()">📅 ГРАФИК И ИСТОРИЯ</button>
         <div id="calendar-container" style="display:none;"><div id="calendar-grid" class="grid"></div></div>
 
         <div class="zp-box">
-            <span>Общий итог (Месяц):</span>
+            <span>Итог за месяц:</span>
             <div id="display-zp" class="zp-value">0 ₽</div>
         </div>
 
@@ -46,24 +51,26 @@
             <div class="modal-content">
                 <span class="close" onclick="app.closeDetails()">&times;</span>
                 <h3 id="detail-date">--</h3>
-                <hr><div id="detail-info"></div>
-                <button class="delete-btn" id="delete-day-btn">❌ ОЧИСТИТЬ</button>
+                <hr>
+                <div id="detail-note" class="saved-note-view"></div>
+                <div id="detail-info"></div>
+                <button class="delete-btn" id="delete-day-btn">❌ ОЧИСТИТЬ ДЕНЬ</button>
             </div>
         </div>
 
         <div id="admin-link-wrapper" class="admin-link" onclick="app.toggleAdmin()" style="display:none;">⚙️ АДМИН-ПАНЕЛЬ</div>
+        
         <div id="admin-box" class="adm" style="display:none;">
-            <h4>Редактор дня</h4>
-            <input type="number" id="adm-day" placeholder="Число (1-31)">
+            <h4>Записать данные в график</h4>
+            <input type="number" id="adm-day" placeholder="Число месяца">
             <input type="number" id="adm-tov" placeholder="Товар ₽">
-            <p style="font-size:10px; margin:5px 0;">Симки (кол-во):</p>
             <div class="sim-grid">
-                <input type="number" id="adm-s1" placeholder="В1">
-                <input type="number" id="adm-s2" placeholder="В2">
-                <input type="number" id="adm-s3" placeholder="В3">
-                <input type="number" id="adm-s4" placeholder="В4">
+                <input type="number" id="adm-s1" placeholder="С1">
+                <input type="number" id="adm-s2" placeholder="С2">
+                <input type="number" id="adm-s3" placeholder="С3">
+                <input type="number" id="adm-s4" placeholder="С4">
             </div>
-            <input type="number" id="adm-usl" placeholder="Услуги ₽" style="margin-top:5px;">
+            <input type="number" id="adm-usl" placeholder="Услуги ₽">
             <button class="save-admin" onclick="app.handleAdminSave()">СОХРАНИТЬ В ГРАФИК</button>
         </div>
 

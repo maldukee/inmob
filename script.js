@@ -1,6 +1,5 @@
-> Пингвинчик:
 const app = {
-    // ЦЕНЫ ЗА СИМКИ (можно менять тут)
+    // ЦЕНЫ: 5% товар, 20% услуги, симки: 100, 150, 200, 250
     prices: { s1: 100, s2: 150, s3: 200, s4: 250, pct: 0.05, uslPct: 0.20 },
     
     currentUser: "",
@@ -17,22 +16,38 @@ const app = {
 
         this.renderCalendar();
         this.updateTotalSalary();
+        this.loadTodayNote();
     },
 
-    // МГНОВЕННЫЙ РАСЧЕТ
+    // Сохранение текста в блокноте (привязано к сегодняшнему числу)
+    saveNote: function() {
+        const day = new Date().getDate();
+        const noteText = document.getElementById('quick-note').value;
+        
+        if (!this.daysData[day]) this.daysData[day] = { total: 0, note: "" };
+        this.daysData[day].note = noteText;
+        this.saveData();
+    },
+
+    loadTodayNote: function() {
+        const day = new Date().getDate();
+        if (this.daysData[day] && this.daysData[day].note) {
+            document.getElementById('quick-note').value = this.daysData[day].note;
+        }
+    },
+
     calcQuick: function() {
         const tov = parseFloat(document.getElementById('quick-tov').value) || 0;
         const s1 = parseInt(document.getElementById('q-s1').value) || 0;
         const s2 = parseInt(document.getElementById('q-s2').value) || 0;
         const s3 = parseInt(document.getElementById('q-s3').value) || 0;
         const s4 = parseInt(document.getElementById('q-s4').value) || 0;
+        const usl = parseFloat(document.getElementById('q-usl').value) || 0;
 
         const res = Math.round(
-            (tov * this.prices.pct) + 
-            (s1 * this.prices.s1) + 
-            (s2 * this.prices.s2) + 
-            (s3 * this.prices.s3) + 
-            (s4 * this.prices.s4)
+            (tov * this.prices.pct) + (usl * this.prices.uslPct) +
+            (s1 * this.prices.s1) + (s2 * this.prices.s2) + 
+            (s3 * this.prices.s3) + (s4 * this.prices.s4)
         );
         document.getElementById('quick-res').innerText = res;
     },
@@ -43,91 +58,81 @@ const app = {
         for (let i = 1; i <= 31; i++) {
             const btn = document.createElement('button');
             btn.innerText = i;
-            btn.className = "day-btn";
-            if (this.daysData[i]) btn.classList.add('active-day');
+            btn.className = "day-btn " + (this.daysData[i] ? "active-day" : "");
             btn.onclick = () => this.showDayDetails(i);
             grid.appendChild(btn);
         }
     },
 
-    toggleCalendar: function() {
-        const cont = document.getElementById('calendar-container');
-        cont.style.display = (cont.style.display === 'none') ? 'block' : 'none';
-    },
-
     showDayDetails: function(day) {
         const modal = document.getElementById('day-details');
-        const info = document.getElementById('detail-info');
-        const delBtn = document.getElementById('delete-day-btn');
         document.getElementById('detail-date').innerText = day + " Число";
-
         const d = this.daysData[day];
-        if (d) {
-            info.innerHTML = `
-                <p style="font-size:18px; color:green;">💰 Итог: <b>${d.total} ₽</b></p>
-                <div style="text-align:left; font-size:12px;">
-                    • Товар: ${d.tov} ₽<br>
-                    • Симки: [1:${d.s1}] [2:${d.s2}] [3:${d.s3}] [4:${d.s4}]<br>
-                    • Услуги: ${d.usl} ₽
-                </div>
-            `;
-            delBtn.onclick = () => this.deleteDay(day);
-            delBtn.style.display = (this.currentUser === 'НИКИТА') ? 'inline-block' : 'none';
-        } else {
-            info.innerHTML = "<p>Нет данных</p>";
-            delBtn.style.display = 'none';
-        }
-        modal.style.display = 'block';
-    },
 
-    closeDetails: function() { document.getElementById('day-details').style.display = 'none'; },
-    toggleAdmin: function() {
-        const box = document.getElementById('admin-box');
-        box.style.display = (box.style.display === 'none') ? 'block' : 'none';
+        const noteView = document.getElementById('detail-note');
+        noteView.innerText = (d && d.note) ? d.note : "Записей в блокноте нет";
+
+        const info = document.getElementById('detail-info');
+        if (d && d.total > 0) {
+            info.innerHTML = <p style="color:green; font-weight:bold;">Прибыль в графике: ${d.total} ₽</p>;
+        } else {
+            info.innerHTML = "<p style='font-size:12px;'>Итог в график пока не внесён</p>";
+        }
+
+        document.getElementById('delete-day-btn').onclick = () => this.deleteDay(day);
+        document.getElementById('delete-day-btn').style.display = (this.currentUser === 'НИКИТА') ? 'block' : 'none';
+        modal.style.display = 'block';
     },
 
     handleAdminSave: function() {
         const day = document.getElementById('adm-day').value;
         const tov = parseFloat(document.getElementById('adm-tov').value) || 0;
+        const usl = parseFloat(document.getElementById('adm-usl').value) || 0;
         const s1 = parseInt(document.getElementById('adm-s1').value) || 0;
         const s2 = parseInt(document.getElementById('adm-s2').value) || 0;
         const s3 = parseInt(document.getElementById('adm-s3').value) || 0;
-        const s4 = parseInt(document.getElementById('adm-s4').value) || 0;
-        const usl = parseFloat(document.getElementById('adm-usl').value) || 0;
+        const s4 = parseInt(document.
+getElementById('adm-s4').value) || 0;
 
-        if (!day⠵⠺⠺⠟⠞⠟⠺⠞⠞⠺⠺day > 31) return alert("Введите число!");
+        if (!day) return alert("Укажите число!");
 
-> Пингвинчик:
-const dailyProfit = Math.round(
-            (tov * this.prices.pct) + 
+        const dailyProfit = Math.round(
+            (tov * this.prices.pct) + (usl * this.prices.uslPct) +
             (s1 * this.prices.s1) + (s2 * this.prices.s2) + 
-            (s3 * this.prices.s3) + (s4 * this.prices.s4) + 
-            (usl * this.prices.uslPct)
+            (s3 * this.prices.s3) + (s4 * this.prices.s4)
         );
 
-        this.daysData[day] = { tov, s1, s2, s3, s4, usl, total: dailyProfit };
+        if (!this.daysData[day]) this.daysData[day] = { note: "" };
+        this.daysData[day].total = dailyProfit;
+        
         this.saveData();
         this.renderCalendar();
         this.updateTotalSalary();
-        this.toggleAdmin();
-        alert("Данные за " + day + " число сохранены!");
+        alert("График обновлен!");
     },
 
+    toggleCalendar: function() {
+        const c = document.getElementById('calendar-container');
+        c.style.display = (c.style.display === 'none') ? 'block' : 'none';
+    },
+    toggleAdmin: function() {
+        const b = document.getElementById('admin-box');
+        b.style.display = (b.style.display === 'none') ? 'block' : 'none';
+    },
+    closeDetails: function() { document.getElementById('day-details').style.display = 'none'; },
+    updateTotalSalary: function() {
+        let t = 0;
+        for (let d in this.daysData) t += (this.daysData[d].total || 0);
+        document.getElementById('display-zp').innerText = t + " ₽";
+    },
+    saveData: function() { localStorage.setItem('savedDaysData', JSON.stringify(this.daysData)); },
     deleteDay: function(day) {
-        if (confirm("Удалить " + day + " число?")) {
+        if (confirm("Удалить данные за " + day + "?")) {
             delete this.daysData[day];
             this.saveData();
             this.renderCalendar();
             this.updateTotalSalary();
             this.closeDetails();
         }
-    },
-
-    updateTotalSalary: function() {
-        let total = 0;
-        for (let day in this.daysData) total += this.daysData[day].total;
-        document.getElementById('display-zp').innerText = total + " ₽";
-    },
-
-    saveData: function() { localStorage.setItem('savedDaysData', JSON.stringify(this.daysData)); }
+    }
 };
