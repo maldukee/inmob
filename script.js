@@ -95,7 +95,7 @@ const app = {
         const s4 = parseInt(document.getElementById('adm-s4').value) || 0;
         const usl = parseFloat(document.getElementById('adm-usl').value) || 0;
 
-        if (!day⠵⠵⠵⠵⠟⠞⠺⠞⠟⠵⠵day > 31) return alert("Введите число!");
+        if (!day⠵⠺⠺⠟⠞⠟⠺⠞⠞⠺⠺day > 31) return alert("Введите число!");
 
 > Пингвинчик:
 const dailyProfit = Math.round(
