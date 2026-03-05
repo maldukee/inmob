@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Учет Зарплаты v2.0</title>
+    <title>Учет Зарплаты v2.2</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,14 +19,26 @@
     <div id="screen-main" class="win" style="display:none;">
         <h3 id="display-user"></h3>
 
-        <button class="calendar-toggle-btn" onclick="app.toggleCalendar()">📅 ГРАФИК И ДЕТАЛИ</button>
-
-        <div id="calendar-container" style="display:none;">
-            <div id="calendar-grid" class="grid"></div>
+        <div class="quick-calc">
+            <label>Товар (₽):</label>
+            <input type="number" id="quick-tov" placeholder="Сумма..." oninput="app.calcQuick()">
+            
+            <label style="margin-top:10px;">Сим-карты (кол-во):</label>
+            <div class="sim-grid">
+                <input type="number" id="q-s1" placeholder="Вид 1" oninput="app.calcQuick()">
+                <input type="number" id="q-s2" placeholder="Вид 2" oninput="app.calcQuick()">
+                <input type="number" id="q-s3" placeholder="Вид 3" oninput="app.calcQuick()">
+                <input type="number" id="q-s4" placeholder="Вид 4" oninput="app.calcQuick()">
+            </div>
+            
+            <div class="quick-result">Итог за сегодня: <span id="quick-res">0</span> ₽</div>
         </div>
 
+        <button class="calendar-toggle-btn" onclick="app.toggleCalendar()">📅 ГРАФИК И ДЕТАЛИ</button>
+        <div id="calendar-container" style="display:none;"><div id="calendar-grid" class="grid"></div></div>
+
         <div class="zp-box">
-            <span>Ваш заработок:</span>
+            <span>Общий итог (Месяц):</span>
             <div id="display-zp" class="zp-value">0 ₽</div>
         </div>
 
@@ -34,21 +46,25 @@
             <div class="modal-content">
                 <span class="close" onclick="app.closeDetails()">&times;</span>
                 <h3 id="detail-date">--</h3>
-                <hr>
-                <div id="detail-info"></div>
-                <button class="delete-btn" id="delete-day-btn">❌ ОЧИСТИТЬ ДЕНЬ</button>
+                <hr><div id="detail-info"></div>
+                <button class="delete-btn" id="delete-day-btn">❌ ОЧИСТИТЬ</button>
             </div>
         </div>
 
         <div id="admin-link-wrapper" class="admin-link" onclick="app.toggleAdmin()" style="display:none;">⚙️ АДМИН-ПАНЕЛЬ</div>
-
         <div id="admin-box" class="adm" style="display:none;">
             <h4>Редактор дня</h4>
             <input type="number" id="adm-day" placeholder="Число (1-31)">
             <input type="number" id="adm-tov" placeholder="Товар ₽">
-            <input type="number" id="adm-sim" placeholder="Симки шт">
-            <input type="number" id="adm-usl" placeholder="Услуги ₽">
-            <button class="save-admin" onclick="app.handleAdminSave()">СОХРАНИТЬ</button>
+            <p style="font-size:10px; margin:5px 0;">Симки (кол-во):</p>
+            <div class="sim-grid">
+                <input type="number" id="adm-s1" placeholder="В1">
+                <input type="number" id="adm-s2" placeholder="В2">
+                <input type="number" id="adm-s3" placeholder="В3">
+                <input type="number" id="adm-s4" placeholder="В4">
+            </div>
+            <input type="number" id="adm-usl" placeholder="Услуги ₽" style="margin-top:5px;">
+            <button class="save-admin" onclick="app.handleAdminSave()">СОХРАНИТЬ В ГРАФИК</button>
         </div>
 
         <p class="exit-btn" onclick="location.reload()">Выход</p>
