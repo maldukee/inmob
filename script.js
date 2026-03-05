@@ -1,153 +1,31 @@
-var app = {
-  user: "",
-  month: new Date().getMonth(),
+body { font-family: sans-serif; background: #f4f4f9; margin: 0; padding: 15px; display: flex; justify-content: center; }
+.win { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
 
-  // Вход в систему
-  start: function(name) {
-    this.user = name;
-    document.getElementById('screen-login').style.display = 'none';
-    document.getElementById('screen-main').style.display = 'block';
-    document.getElementById('display-user').innerText = name;
-    this.updateUI();
-  },
+h2, h3 { color: #333; margin-top: 0; }
 
-  // Чтение текста из поля
-  handleInput: function() {
-    var text = document.getElementById('input-text').value.toLowerCase();
-    if (!text) return;
+/* КНОПКИ ВХОДА */
+.login-buttons button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; background: #007bff; color: white; font-size: 16px; cursor: pointer; }
 
-    var tov = 0;
-    var sim = 0;
-    var usl = 0;
-    var rows = text.split('\n');
+/* КАЛЕНДАРЬ - МАЛЕНЬКИЕ КНОПКИ */
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 10px 0; background: #eee; padding: 5px; border-radius: 8px; }
+.day-btn { padding: 6px 0; font-size: 12px; border: 1px solid #ddd; background: #fff; cursor: pointer; border-radius: 3px; }
+.active-day { background: #28a745 !important; color: white; font-weight: bold; border-color: #1e7e34; }
 
-    for (var i = 0; i < rows.length; i++) {
-      var line = rows[i];
-      // Извлекаем только число из строки
-      var num = parseInt(line.replace(/[^0-9]/g, '')) || 0;
+/* ЗАРПЛАТА */
+.zp-box { background: #e7f3ff; padding: 15px; border-radius: 10px; margin: 15px 0; }
+.zp-value { font-size: 28px; font-weight: bold; color: #0056b3; }
 
-      if (line.indexOf('настр') !== -1 || line.indexOf('уст') !== -1) {
-        usl = usl + num;
-      } else if (line.indexOf('мпл') !== -line.indexOf('сим') !== -1) {
-        sim = sim + 1;
-      } else if (num > 0) {
-        tov = tov + num;
-      }
-    }
+/* МОДАЛЬНОЕ ОКНО */
+.modal { position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+.modal-content { background: white; margin: 30% auto; padding: 20px; width: 75%; border-radius: 12px; position: relative; }
+.close { position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; }
 
-    this.save(new Date().getDate(), tov, sim, usl);
-    document.getElementById('input-text').value = "";
-  },
+/* АДМИНКА */
+.adm { background: #fff3cd; padding: 15px; border-radius: 10px; margin-top: 10px; border: 1px solid #ffeeba; }
+.adm input { width: 80%; padding: 8px; margin: 4px 0; border: 1px solid #ccc; border-radius: 5px; }
+.save-admin { background: #ffc107; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 5px; }
 
-  // Сохранение и расчет
-  save: function(day, tov, sim, usl) {
-    var key = "work_data_" + this.user + "_" + this.month;
-    var raw = localStorage.getItem(key);
-    var db = raw ? JSON.parse(raw) : [];
-    
-    // Считаем прогресс месяца для бонуса
-    var totalS = sim;
-    var totalN = usl;
-    for (var j = 0; j < db.length; j++) {
-      if (parseInt(db[j].day) !== day) {
-        totalS = totalS + db[j].sim;
-        totalN = totalN + db[j].usl;
-      }
-    }
-
-    // Базовая формула ЗП
-    var base = 1200 + (tov * 0.1) + (sim * 100) + (usl * 0.5);
-    
-    // Если план выполнен (30 симок или 10к услуг) — надбавка 20%
-    if (totalS >= 30 || totalN >= 10000) {
-      base = base * 1.2;
-    }
-
-    var dayStr = day.toString();
-    if (dayStr.length < 2) dayStr = "0" + dayStr;
-
-    // Удаляем старую запись за этот день
-    var newDb = [];
-    for (var k = 0; k < db.length; k++) {
-      if (db[k].day !== dayStr) {
-        newDb.push(db[k]);
-      }
-    }
-    
-    // Добавляем новую
-    newDb.push({
-      day: dayStr,
-      tov: tov,
-      sim: sim,
-      usl: usl,
-      zp: Math.round(base)
-    });
-
-    localStorage.setItem(key, JSON.stringify(newDb));
-    this.updateUI();
-  },
-
-  // Обновление интерфейса
-  updateUI: function() {
-    var key = "work_data_" + this.user + "_" + this.month;
-    var raw = localStorage.getItem(key);
-    var db = raw ? JSON.parse(raw) : [];
-    var today = new Date().getDate();
-    
-    var daysMap = {};
-    for (var l = 0; l < db.length; l++) {
-      daysMap[parseInt(db[l].day)] = db[l];
-    }
-
-    var currentZp = 0;
-    if (daysMap[today]) {
-      currentZp = daysMap[today].zp;
-    }
-    document.getElementById('display-zp').innerText = currentZp + " ₽";
-
-    var html = "";
-    for (var d = 1; d <= 31; d++) {
-      var cls = "day";
-      if (daysMap[d]) {
-        cls = cls + " green";
-      } else if (d < today) {
-        cls = cls + " red";
-      }
-      html = html + '<div class="' + cls + '" onclick="app.showInfo(' + d + ')">' + d + '</div>';
-    }
-    document.getElementById('calendar-grid').innerHTML = html;
-  },
-
-  showInfo: function(d) {
-    var key = "work_data_" + this.user + "_" + this.month;
-    var db = JSON.parse(localStorage.getItem(key) || "[]");
-    var found = null;
-    for (var i = 0; i < db.length; i++) {
-      if (parseInt(db[i].day) === d) found = db[i];
-    }
-    if (found) {
-      alert("ДЕНЬ: " + found.day + "\nЗП: " + found.zp + " ₽\nТовар: " + found.tov + " ₽\nСим: " + found.sim + "\nУслуги: " + found.usl);
-    }
-  },
-
-  handleAdminSave: function() {
-    var d = parseInt(document.getElementById('adm-day').value);
-    if (!d) return;
-    this.save(d, 
-      parseInt(document.getElementById('adm-tov').value) || 0, 
-      parseInt(document.getElementById('adm-sim').value) || 0, 
-      parseInt(document.getElementById('adm-usl').value) || 0
-    );
-    this.toggleAdmin();
-  },
-
-  toggleAdmin: function() {
-    var b = document.
-getElementById('admin-box');
-    if (b.style.display === 'block') {
-      b.style.display = 'none';
-    } else {
-      b.style.display = 'block';
-    }
-  }
-};
+.admin-link { color: #666; font-size: 14px; margin-top: 15px; cursor: pointer; text-decoration: underline; }
+.calendar-toggle-btn { background: #6c757d; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; cursor: pointer; }
+.exit-btn { font-size: 12px; color: #999; cursor: pointer; margin-top: 20px; }
+.delete-btn { background: #dc3545; color: white; border: none; padding: 8px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-size: 12px; }
