@@ -1,0 +1,28 @@
+<div id="screen-login" class="win">
+  <h2>КТО НА СМЕНЕ?</h2>
+  <button onclick="app.start('ИВАН')">👤 ИВАН</button>
+  <button onclick="app.start('НИКИТА')">👤 НИКИТА</button>
+</div>
+
+<div id="screen-main" class="win" style="display:none;">
+  <h3 id="display-user"></h3>
+
+  <textarea id="input-text" placeholder="мпл, про, настр 1000, товар 5000..."></textarea>
+  <button class="save" onclick="app.handleInput()">🚀 ЗАПИСАТЬ</button>
+
+  <div id="display-zp" class="zp-value">0 ₽</div>
+
+  <div id="calendar-grid" class="grid"></div>
+
+  <div class="admin-link" onclick="app.toggleAdmin()">⚙️ АДМИН-ПАНЕЛЬ</div>
+
+  <div id="admin-box" class="adm">
+    <input type="number" id="adm-day" placeholder="Число (1-31)">
+    <input type="number" id="adm-tov" placeholder="Товар ₽">
+    <input type="number" id="adm-sim" placeholder="Симки шт">
+    <input type="number" id="adm-usl" placeholder="Услуги ₽">
+    <button onclick="app.handleAdminSave()">СОХРАНИТЬ</button>
+  </div>
+
+  <p class="exit-btn" onclick="location.reload()">ВЫХОД</p>
+</div>

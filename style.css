@@ -1,0 +1,110 @@
+body {
+  background: #000;
+  color: #fff;
+  font-family: sans-serif;
+  text-align: center;
+  padding: 15px;
+}
+
+.win {
+  border: 2px solid #00B956;
+  padding: 20px;
+  background: #111;
+  border-radius: 20px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+button {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  margin: 10px 0;
+  background: #731982;
+  color: #fff;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+}
+
+.save {
+  background: #00B956 !important;
+  color: #000 !important;
+}
+
+textarea {
+  width: 100%;
+  height: 80px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #00B956;
+  border-radius: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+  font-size: 16px;
+  resize: none;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.zp-value {
+  font-size: 35px;
+  color: #00B956;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-top: 15px;
+}
+
+.day {
+  font-size: 11px;
+  padding: 10px 0;
+  background: #222;
+  border-radius: 8px;
+  color: #555;
+  cursor: pointer;
+  border: 1px solid #333;
+}
+
+.green { background: #00B956 !important; color: #000 !important; font-weight: bold; }
+.red { background: #400 !important; }
+
+.adm {
+  display: none;
+  background: #1a1a1a;
+  padding: 15px;
+  border-radius: 15px;
+  border: 1px dashed #ff4444;
+  margin-top: 20px;
+}
+
+.admin-link {
+  margin-top: 25px;
+  color: #444;
+  font-size: 10px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.exit-btn {
+  margin-top: 30px;
+  font-size: 10px;
+  color: #333;
+  cursor: pointer;
+}
