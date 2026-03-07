@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ - INFINITY</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .admin-card { width: 100%; max-width: 400px; border: 1px solid #eee; border-radius: 20px; padding: 20px; }
+        label { font-size: 11px; color: #999; display: block; margin-top: 15px; }
+        select, input, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 12px; border: 1px solid #eee; box-sizing: border-box; }
+        .save-btn { background: #FF3B30; color: white; border: none; width: 100%; padding: 15px; border-radius: 15px; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="admin-card">
+    <h2 style="color:#FF3B30; text-align:center;">АДМИН</h2>
+    <label>СОТРУДНИК</label><select id="adm-user"><option>Никита</option><option>Иван</option></select>
+    <label>ДАТА</label><input type="date" id="adm-date">
+    <label>СУММА (₽)</label><input type="number" id="adm-cash">
+    <label>ТЕКСТ БЛОКНОТА</label><textarea id="adm-text" rows="4"></textarea>
+    <button class="save-btn" onclick="adminSave()">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
+    <a href="work.html" style="display:block; text-align:center; margin-top:15px; color:#999; text-decoration:none;">Назад</a>
+</div>
+<script>
+    document.getElementById('adm-date').valueAsDate = new Date();
+    function adminSave() {
+        const u = document.getElementById('adm-user').value;
+        const d = new Date(document.getElementById('adm-date').value);
+        const cash = document.getElementById('adm-cash').value;
+        const text = document.getElementById('adm-text').value;
+        const key = ${u}_${d.getFullYear()}_${d.getMonth()}_${d.getDate()};
+        
+        let sch = JSON.parse(localStorage.getItem('Inf_Schedule')) || {};
+        sch[key] = 'work';
+        localStorage.setItem('Inf_Schedule', JSON.stringify(sch));
+        
+        let data = JSON.parse(localStorage.getItem('Inf_Data')) || {};
+        data[key] = { cash: Number(cash), text: text };
+        localStorage.setItem('Inf_Data', JSON.stringify(data));
+        alert("Готово!");
+    }
+</script>
+</body>
+</html>

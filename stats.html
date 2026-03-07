@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>График - ИНФИНИТИ</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); /* 7 колонок */
+            gap: 5px;
+            margin-top: 15px;
+        }
+        .day-card {
+            aspect-ratio: 1/1; /* Квадратные ячейки */
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            background: #ff4d4d; /* По умолчанию - красный (выходной) */
+            position: relative;
+        }
+        .day-card.work {
+            background: #00B956; /* Зеленый (работал) */
+        }
+        .day-card span { font-size: 8px; opacity: 0.8; margin-bottom: 2px; }
+        .day-card b { font-size: 9px; }
+        
+        .header-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .total-info {
+            background: #111;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .total-info h2 { color: #00B956; margin: 0; font-size: 24px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button onclick="window.location.href='work.html'" style="background:none; border:none; color:#00B956; font-weight:bold; cursor:pointer;">← НАЗАД</button>
+            <h3 id="user-title">ГРАФИК</h3>
+        </div>
+
+        <div class="card" style="padding: 10px;">
+            <div class="header-days">
+                <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
+            </div>
+            <div id="calendar" class="calendar-grid">
+                </div>
+        </div>
+
+        <div class="total-info">
+            <span>ИТОГО ЗА МЕСЯЦ:</span>
+            <h2 id="month-total">0 ₽</h2>
+        </div>
+    </div>
+
+    <script>
+        const name = localStorage.getItem('currentUser') || "Сотрудник";
+        document.getElementById('user-title').innerText = "ГРАФИК: " + name;
+
+        // Загружаем данные о сменах и зарплате
+        const scheduleDB = JSON.parse(localStorage.getItem('Inf_DB_Schedule')) || {};
+        const salaryDB = JSON.parse(localStorage.getItem('Inf_Final_V4')) || {}; // Берем данные из нашего умного блокнота
+        
+        const calendarEl = document.getElementById('calendar');
+        let monthSum = 0;
+
+        // Получаем текущую дату для построения сетки
+        const now = new Date();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        
+        // Определяем, с какого дня недели начинается месяц (чтобы сделать отступы если нужно)
+        // Для простоты заполним просто 31 день или 1-30
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dayCard = document.createElement('div');
+            dayCard.className = 'day-card';
+            
+            // Проверяем: работал ли сотрудник (есть ли запись в расписании)
+            const isWorkDay = scheduleDB[name] && scheduleDB[name][i] === 'work';
+            const daySalary = (salaryDB[i] && salaryDB[i].cash) ? salaryDB[i].cash : 0;
+
+            if (isWorkDay) {
+                dayCard.classList.add('work');
+                monthSum += daySalary;
+            }
+
+            dayCard.innerHTML = `
+                <span>${i}</span>
+                <b>${daySalary > 0 ? daySalary + '₽' : (isWorkDay ? '0₽' : 'ВЫХ')}</b>
+            `;
+            
+            calendarEl.appendChild(dayCard);
+        }
+
+        document.getElementById('month-total').
+innerText = monthSum + " ₽";
+    </script>
+</body>
+</html>

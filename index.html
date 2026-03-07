@@ -2,81 +2,34 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Учет Зарплаты v2.3</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Вход - INFINITY</title>
+    <style>
+        body { background: #fff; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-card { text-align: center; width: 100%; max-width: 300px; padding: 20px; }
+        h2 { font-size: 26px; font-weight: 900; letter-spacing: 4px; margin-bottom: 40px; color: #000; }
+        .user-btn { width: 100%; padding: 22px; margin: 12px 0; border: none; background: #f0f0f5; border-radius: 20px; font-weight: 800; font-size: 18px; color: #333; cursor: pointer; transition: all 0.1s ease; -webkit-tap-highlight-color: transparent; }
+        .user-btn:active { background: #00B956 !important; color: #fff !important; transform: scale(0.95); }
+        .subtitle { font-size: 10px; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; display: block; }
+    </style>
 </head>
 <body>
-
-    <div id="screen-login" class="win">
-        <h2>КТО НА СМЕНЕ?</h2>
-        <div class="login-buttons">
-            <button onclick="app.start('ИВАН')">👤 ИВАН</button>
-            <button onclick="app.start('НИКИТА')">👤 НИКИТА</button>
-        </div>
+    <div class="login-card">
+        <span class="subtitle">ВЫБЕРИТЕ ПРОФИЛЬ</span>
+        <h2>INFINITY</h2>
+        <button class="user-btn" onclick="loginUser('Никита')">НИКИТА</button>
+        <button class="user-btn" onclick="loginUser('Иван')">ИВАН</button>
     </div>
-
-    <div id="screen-main" class="win" style="display:none;">
-        <h3 id="display-user"></h3>
-
-        <div class="notebook-section">
-            <label>📝 Блокнот смены (записи):</label>
-            <textarea id="quick-note" placeholder="Пример: товар 5000 нал, сим2 3шт, настройка 1000..." oninput="app.saveNote()"></textarea>
-            <p style="font-size: 10px; color: #666;">* Данные из блокнота сохраняются автоматически</p>
-        </div>
-
-        <div class="quick-calc">
-            <label>Калькулятор прибыли (₽):</label>
-            <input type="number" id="quick-tov" placeholder="Товар ₽" oninput="app.calcQuick()">
-            <div class="sim-grid">
-                <input type="number" id="q-s1" placeholder="Сим1" oninput="app.calcQuick()">
-                <input type="number" id="q-s2" placeholder="Сим2" oninput="app.calcQuick()">
-                <input type="number" id="q-s3" placeholder="Сим3" oninput="app.calcQuick()">
-                <input type="number" id="q-s4" placeholder="Сим4" oninput="app.calcQuick()">
-            </div>
-            <input type="number" id="q-usl" placeholder="Настройки/Пленки ₽" oninput="app.calcQuick()" style="margin-top:5px; width: 90%;">
-            
-            <div class="quick-result">Итог за сегодня: <span id="quick-res">0</span> ₽</div>
-        </div>
-
-        <button class="calendar-toggle-btn" onclick="app.toggleCalendar()">📅 ГРАФИК И ИСТОРИЯ</button>
-        <div id="calendar-container" style="display:none;"><div id="calendar-grid" class="grid"></div></div>
-
-        <div class="zp-box">
-            <span>Итог за месяц:</span>
-            <div id="display-zp" class="zp-value">0 ₽</div>
-        </div>
-
-        <div id="day-details" class="modal" style="display:none;">
-            <div class="modal-content">
-                <span class="close" onclick="app.closeDetails()">&times;</span>
-                <h3 id="detail-date">--</h3>
-                <hr>
-                <div id="detail-note" class="saved-note-view"></div>
-                <div id="detail-info"></div>
-                <button class="delete-btn" id="delete-day-btn">❌ ОЧИСТИТЬ ДЕНЬ</button>
-            </div>
-        </div>
-
-        <div id="admin-link-wrapper" class="admin-link" onclick="app.toggleAdmin()" style="display:none;">⚙️ АДМИН-ПАНЕЛЬ</div>
-        
-        <div id="admin-box" class="adm" style="display:none;">
-            <h4>Записать данные в график</h4>
-            <input type="number" id="adm-day" placeholder="Число месяца">
-            <input type="number" id="adm-tov" placeholder="Товар ₽">
-            <div class="sim-grid">
-                <input type="number" id="adm-s1" placeholder="С1">
-                <input type="number" id="adm-s2" placeholder="С2">
-                <input type="number" id="adm-s3" placeholder="С3">
-                <input type="number" id="adm-s4" placeholder="С4">
-            </div>
-            <input type="number" id="adm-usl" placeholder="Услуги ₽">
-            <button class="save-admin" onclick="app.handleAdminSave()">СОХРАНИТЬ В ГРАФИК</button>
-        </div>
-
-        <p class="exit-btn" onclick="location.reload()">Выход</p>
-    </div>
-
-    <script src="script.js"></script>
+    <script>
+        function loginUser(name) {
+            localStorage.setItem('currentUser', name);
+            const now = new Date();
+            const key = name + "_" + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDate();
+            let schedule = JSON.parse(localStorage.getItem('Inf_Schedule')) || {};
+            schedule[key] = 'work';
+            localStorage.setItem('Inf_Schedule', JSON.stringify(schedule));
+            window.location.href = 'work.html';
+        }
+    </script>
 </body>
 </html>

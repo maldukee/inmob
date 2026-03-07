@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Блокнот - INFINITY</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #fff; margin: 0; display: flex; justify-content: center; color: #333; }
+        .container { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .user-info { font-weight: 900; font-size: 13px; text-transform: uppercase; color: #888; }
+        .exit-btn { color: #ccc; text-decoration: none; font-size: 11px; }
+        
+        /* Напоминание */
+        #check-alert { display: none; background: #FF3B30; color: white; padding: 12px; border-radius: 15px; margin-bottom: 15px; text-align: center; font-weight: bold; font-size: 12px; }
+        
+        .note-card { background: #f9f9f9; border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid #eee; }
+        #note-area { width: 100%; height: 160px; border: none; background: transparent; font-size: 16px; outline: none; resize: none; color: #333; font-family: inherit; }
+        
+        .salary-badge { background: #111; color: #fff; padding: 15px 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .salary-main b { font-size: 34px; color: #00B956; display: block; line-height: 1; margin-top: 4px; }
+        .salary-details { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 10px; color: #777; font-weight: bold; }
+        .salary-details span { color: #aaa; font-weight: normal; margin-right: 3px; }
+        
+        .btn-group { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 16px; border-radius: 15px; border: none; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; }
+        .btn-save { background: #00B956; color: white; }
+        .btn-stats { background: #f0f0f0; color: #666; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; }
+        
+        #admin-link { display: none; text-align: center; margin-top: 20px; font-size: 11px; }
+        #admin-link a { color: #FF3B30; text-decoration: none; font-weight: bold; border-bottom: 1px dashed #FF3B30; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="check-alert">🔔 Пора сверить итоги дня и нажать «Записать»!</div>
+    <div class="header">
+        <span class="user-info" id="user-display">Сотрудник</span>
+        <a href="index.html" class="exit-btn">ВЫХОД</a>
+    </div>
+    <div class="note-card"><textarea id="note-area" placeholder="чехол 500, пленка нал..." oninput="calculate()"></textarea></div>
+    <div class="salary-badge">
+        <div class="salary-main"><span style="font-size: 9px; color: #555;">ЗП СЕГОДНЯ</span><b id="total-amount">0 ₽</b></div>
+        <div class="salary-details">
+            <div id="det-tov"><span>Тов:</span>0</div>
+            <div id="det-sim"><span>Сим:</span>0</div>
+            <div id="det-pl-nal"><span>Пл Н:</span>0</div>
+            <div id="det-pl-bn"><span>Пл Б:</span>0</div>
+            <div id="det-ns" style="grid-column: span 2;"><span>Настр:</span>0</div>
+        </div>
+    </div>
+    <div class="btn-group">
+        <button class="btn btn-save" onclick="saveData()">Записать</button>
+        <a href="stats.html" class="btn btn-stats">График</a>
+    </div>
+    <div id="admin-link"><a href="admin.html">ПАНЕЛЬ УПРАВЛЕНИЯ</a></div>
+</div>
+
+<script>
+    const user = localStorage.getItem('currentUser') || "Гость";
+    document.getElementById('user-display').innerText = user;
+    if (user === 'Никита') document.getElementById('admin-link').style.display = 'block';
+
+    window.onload = () => {
+        const now = new Date();
+        const key = ${user}_${now.getFullYear()}_${now.getMonth()}_${now.getDate()};
+        const saved = JSON.
+parse(localStorage.getItem('Inf_Data')) || {};
+        if (saved[key]) { document.getElementById('note-area').value = saved[key].text || ""; calculate(); }
+        checkTime();
+    };
+
+    function checkTime() {
+        const hours = new Date().getHours();
+        const now = new Date();
+        const key = ${user}_${now.getFullYear()}_${now.getMonth()}_${now.getDate()};
+        const saved = JSON.parse(localStorage.getItem('Inf_Data')) || {};
+        if (hours >= 22 && !saved[key]) { document.getElementById('check-alert').style.display = 'block'; }
+        else { document.getElementById('check-alert').style.display = 'none'; }
+    }
+
+    function calculate() {
+        const text = document.getElementById('note-area').value.toLowerCase();
+        let valTov = 0, valUsl = 0, simCash = 0, plNal = 0, plBn = 0;
+        const tovKeys = ["кабель","сзу","блок","наушники","батарейки","чехол","часы","повербанк","колонка","держатель","азу","бзу"];
+        tovKeys.forEach(w => { const r = new RegExp(w + "\\s*(\\d+)", "gi"); let m; while ((m = r.exec(text)) !== null) valTov += parseFloat(m[1]); });
+        const uslKeys = ["н ", "настр", "нс", "услуг"];
+        uslKeys.forEach(w => { const r = new RegExp(w + "\\s*(\\d+)", "gi"); let m; while ((m = r.exec(text)) !== null) valUsl += parseFloat(m[1]); });
+        plNal = (text.match(/(?:пленка|стекло)\s*нал/gi) || []).length * 250;
+        plBn = (text.match(/(?:пленка|стекло)\s*бн/gi) || []).length * 200;
+        const s100 = ["мпл", "клон", "2гб", "35гб"];
+        s100.forEach(s => { simCash += (text.match(new RegExp(s, "g")) || []).length * 100; });
+        const s300 = ["yota", "мегатариф"];
+        s300.forEach(s => { simCash += (text.match(new RegExp(s, "g")) || []).length * 300; });
+        const rT = Math.round(valTov * 0.1), rU = Math.round(valUsl * 0.5);
+        const total = rT + rU + plNal + plBn + simCash;
+        document.getElementById('total-amount').innerText = total + " ₽";
+        document.getElementById('det-tov').innerHTML = "<span>Тов:</span>" + rT;
+        document.getElementById('det-sim').innerHTML = "<span>Сим:</span>" + simCash;
+        document.getElementById('det-pl-nal').innerHTML = "<span>Пл Н:</span>" + plNal;
+        document.getElementById('det-pl-bn').innerHTML = "<span>Пл Б:</span>" + plBn;
+        document.getElementById('det-ns').innerHTML = "<span>Настр:</span>" + rU;
+        return total;
+    }
+
+    function saveData() {
+        const total = calculate();
+        const now = new Date();
+        const key = ${user}_${now.getFullYear()}_${now.getMonth()}_${now.getDate()};
+        let data = JSON.parse(localStorage.getItem('Inf_Data')) || {};
+        data[key] = { cash: total, text: document.getElementById('note-area').value };
+        localStorage.setItem('Inf_Data', JSON.stringify(data));
+        checkTime();
+        alert("✅ Сохранено!");
+    }
+</script>
+</body>
+</html>

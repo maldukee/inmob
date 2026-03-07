@@ -1,138 +1,116 @@
-const app = {
-    // ЦЕНЫ: 5% товар, 20% услуги, симки: 100, 150, 200, 250
-    prices: { s1: 100, s2: 150, s3: 200, s4: 250, pct: 0.05, uslPct: 0.20 },
-    
-    currentUser: "",
-    daysData: JSON.parse(localStorage.getItem('savedDaysData')) || {}, 
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. БАЗА ДАННЫХ
+    let db = JSON.parse(localStorage.getItem('Infinity_V5_Data')) || {};
 
-    start: function(name) {
-        this.currentUser = name;
-        document.getElementById('screen-login').style.display = 'none';
-        document.getElementById('screen-main').style.display = 'block';
-        document.getElementById('display-user').innerText = "Профиль: " + name;
+    // 2. ЭЛЕМЕНТЫ
+    const ui = {
+        screenLogin: document.getElementById('screen-login'),
+        screenMain: document.getElementById('screen-main'),
+        userName: document.getElementById('user-display'),
+        noteArea: document.getElementById('note-area'),
+        totalVal: document.getElementById('total-val'),
+        grid: document.getElementById('grid'),
+        modal: document.getElementById('modal'),
+        admLink: document.getElementById('adm-link'),
+        admBox: document.getElementById('adm-box'),
+        calBox: document.getElementById('cal-box')
+    };
 
-        const adminLink = document.getElementById('admin-link-wrapper');
-        adminLink.style.display = (name.toUpperCase() === 'НИКИТА') ? 'block' : 'none';
+    // 3. ФУНКЦИИ ЛОГИКИ
+    const save = () => localStorage.setItem('Infinity_V5_Data', JSON.stringify(db));
 
-        this.renderCalendar();
-        this.updateTotalSalary();
-        this.loadTodayNote();
-    },
-
-    // Сохранение текста в блокноте (привязано к сегодняшнему числу)
-    saveNote: function() {
-        const day = new Date().getDate();
-        const noteText = document.getElementById('quick-note').value;
-        
-        if (!this.daysData[day]) this.daysData[day] = { total: 0, note: "" };
-        this.daysData[day].note = noteText;
-        this.saveData();
-    },
-
-    loadTodayNote: function() {
-        const day = new Date().getDate();
-        if (this.daysData[day] && this.daysData[day].note) {
-            document.getElementById('quick-note').value = this.daysData[day].note;
-        }
-    },
-
-    calcQuick: function() {
-        const tov = parseFloat(document.getElementById('quick-tov').value) || 0;
-        const s1 = parseInt(document.getElementById('q-s1').value) || 0;
-        const s2 = parseInt(document.getElementById('q-s2').value) || 0;
-        const s3 = parseInt(document.getElementById('q-s3').value) || 0;
-        const s4 = parseInt(document.getElementById('q-s4').value) || 0;
-        const usl = parseFloat(document.getElementById('q-usl').value) || 0;
-
-        const res = Math.round(
-            (tov * this.prices.pct) + (usl * this.prices.uslPct) +
-            (s1 * this.prices.s1) + (s2 * this.prices.s2) + 
-            (s3 * this.prices.s3) + (s4 * this.prices.s4)
-        );
-        document.getElementById('quick-res').innerText = res;
-    },
-
-    renderCalendar: function() {
-        const grid = document.getElementById('calendar-grid');
-        grid.innerHTML = "";
+    const render = () => {
+        ui.grid.innerHTML = "";
+        let totalMonth = 0;
         for (let i = 1; i <= 31; i++) {
-            const btn = document.createElement('button');
-            btn.innerText = i;
-            btn.className = "day-btn " + (this.daysData[i] ? "active-day" : "");
-            btn.onclick = () => this.showDayDetails(i);
-            grid.appendChild(btn);
+            const dayDiv = document.createElement('div');
+            dayDiv.className = "day";
+            let label = "";
+            if (db[i]) {
+                if (db[i].cash > 0) {
+                    dayDiv.classList.add("green");
+                    label = db[i].cash + " ₽";
+                    totalMonth += db[i].cash;
+                } else if (db[i].note && db[i].note.trim() !== "") {
+                    dayDiv.classList.add("green");
+                    label = "ЗАП";
+                }
+            }
+            dayDiv.innerHTML = <b>${i}</b><span style="font-size:7px">${label}</span>;
+            dayDiv.addEventListener('click', () => showDay(i));
+            ui.grid.appendChild(dayDiv);
         }
-    },
+        ui.totalVal.innerText = totalMonth.toLocaleString() + " ₽";
+    };
 
-    showDayDetails: function(day) {
-        const modal = document.getElementById('day-details');
-        document.getElementById('detail-date').innerText = day + " Число";
-        const d = this.daysData[day];
-
-        const noteView = document.getElementById('detail-note');
-        noteView.innerText = (d && d.note) ? d.note : "Записей в блокноте нет";
-
-        const info = document.getElementById('detail-info');
-        if (d && d.total > 0) {
-            info.innerHTML = <p style="color:green; font-weight:bold;">Прибыль в графике: ${d.total} ₽</p>;
+    const showDay = (i) => {
+        const d = db[i];
+        ui.modal.style.display = 'block';
+        document.getElementById('m-title').innerText = i + " ЧИСЛО";
+        document.getElementById('m-body').innerText = d?.note || "Записей нет";
+        const table = document.getElementById('m-table-body');
+        table.innerHTML = "";
+        if (d && d.cash > 0) {
+            table.innerHTML = `
+                <tr><td>Товар (5%):</td><td align="right">${Math.round(d.tov*0.05)} ₽</td></tr>
+                <tr><td>Услуги (20%):</td><td align="right">${Math.round(d.usl*0.2)} ₽</td></tr>
+                <tr><td>Сим-карты:</td><td align="right">${d.sim} ₽</td></tr>`;
+            document.getElementById('m-cash-box').style.display = "block";
+            document.getElementById('m-cash').innerText = "ИТОГО: " + d.cash + " ₽";
         } else {
-            info.innerHTML = "<p style='font-size:12px;'>Итог в график пока не внесён</p>";
+            document.getElementById('m-cash-box').style.display = "none";
         }
+    };
 
-        document.getElementById('delete-day-btn').onclick = () => this.deleteDay(day);
-        document.getElementById('delete-day-btn').style.display = (this.currentUser === 'НИКИТА') ? 'block' : 'none';
-        modal.style.display = 'block';
-    },
+    // 4. НАЗНАЧЕНИЕ СОБЫТИЙ (САМОЕ ВАЖНОЕ)
+    const login = (name) => {
+        const today = new Date().getDate();
+        if (!db[today]) db[today] = { cash: 0, note: "", tov: 0, usl: 0, sim: 0 };
+        ui.screenLogin.style.display = 'none';
+        ui.screenMain.style.display = 'block';
+        ui.userName.innerText = "СМЕНА: " + name;
+        if (name === 'НИКИТА') ui.admLink.style.display = 'block';
+        ui.noteArea.value = db[today].note || "";
+        render();
+    };
 
-    handleAdminSave: function() {
-        const day = document.getElementById('adm-day').value;
-        const tov = parseFloat(document.getElementById('adm-tov').value) || 0;
-        const usl = parseFloat(document.getElementById('adm-usl').value) || 0;
-        const s1 = parseInt(document.getElementById('adm-s1').value) || 0;
-        const s2 = parseInt(document.getElementById('adm-s2').value) || 0;
-        const s3 = parseInt(document.getElementById('adm-s3').value) || 0;
-        const s4 = parseInt(document.
-getElementById('adm-s4').value) || 0;
+    document.getElementById('btn-ivan').addEventListener('click', () => login('ИВАН'));
+    document.getElementById('btn-nikita').addEventListener('click', () => login('НИКИТА'));
 
-        if (!day) return alert("Укажите число!");
+    document.getElementById('btn-save-note').addEventListener('click', () => {
+        const today = new Date().getDate();
+        if (!db[today]) db[today] = { cash: 0, note: "", tov: 0, usl: 0, sim: 0 };
+        db[today].note = ui.noteArea.value;
+        save();
+        render();
+        alert("✅ Сохранено");
+    });
 
-        const dailyProfit = Math.round(
-            (tov * this.prices.pct) + (usl * this.prices.uslPct) +
-            (s1 * this.prices.s1) + (s2 * this.prices.s2) + 
-            (s3 * this.prices.s3) + (s4 * this.prices.s4)
-        );
+    document.getElementById('btn-toggle-cal').addEventListener('click', () => {
+        ui.calBox.style.display = ui.calBox.style.display === 'none' ? 'block' : 'none';
+    });
 
-        if (!this.daysData[day]) this.daysData[day] = { note: "" };
-        this.daysData[day].total = dailyProfit;
-        
-        this.saveData();
-        this.renderCalendar();
-        this.updateTotalSalary();
-        alert("График обновлен!");
-    },
+    ui.admLink.addEventListener('click', () => {
+        ui.admBox.style.display = ui.admBox.style.display === 'none' ? 'block' : 'none';
+    });
 
-    toggleCalendar: function() {
-        const c = document.getElementById('calendar-container');
-        c.style.display = (c.style.display === 'none') ? 'block' : 'none';
-    },
-    toggleAdmin: function() {
-        const b = document.getElementById('admin-box');
-        b.style.display = (b.style.display === 'none') ? 'block' : 'none';
-    },
-    closeDetails: function() { document.getElementById('day-details').style.display = 'none'; },
-    updateTotalSalary: function() {
-        let t = 0;
-        for (let d in this.daysData) t += (this.daysData[d].total || 0);
-        document.getElementById('display-zp').innerText = t + " ₽";
-    },
-    saveData: function() { localStorage.setItem('savedDaysData', JSON.stringify(this.daysData)); },
-    deleteDay: function(day) {
-        if (confirm("Удалить данные за " + day + "?")) {
-            delete this.daysData[day];
-            this.saveData();
-            this.renderCalendar();
-            this.updateTotalSalary();
-            this.closeDetails();
-        }
-    }
-};
+    document.getElementById('btn-admin-save').
+addEventListener('click', () => {
+        const d = document.getElementById('adm-d').value;
+        const t = parseFloat(document.getElementById('adm-tov').value) || 0;
+        const u = parseFloat(document.getElementById('adm-usl').value) || 0;
+        const s = parseFloat(document.getElementById('adm-sim').value) || 0;
+        if (!dd > 31) return alert("Введите число!");
+        const total = Math.round((t * 0.05) + (u * 0.2) + s);
+        if (!db[d]) db[d] = { note: "" };
+        db[d].cash = total; db[d].tov = t; db[d].usl = u; db[d].sim = s;
+        save(); render();
+        alert("Расчет за " + d + " число готов!");
+    });
+
+    document.getElementById('btn-exit').addEventListener('click', () => location.reload());
+    document.getElementById('btn-close-modal').addEventListener('click', () => ui.modal.style.display = 'none');
+    
+    // Закрытие модалки по клику вне контента
+    window.addEventListener('click', (e) => { if(e.target == ui.modal) ui.modal.style.display = 'none'; });
+});
