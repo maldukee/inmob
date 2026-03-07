@@ -8,7 +8,12 @@
         body { background: #fff; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
         .login-card { text-align: center; width: 100%; max-width: 300px; padding: 20px; }
         h2 { font-size: 26px; font-weight: 900; letter-spacing: 4px; margin-bottom: 40px; color: #000; }
-        .user-btn { width: 100%; padding: 22px; margin: 12px 0; border: none; background: #f0f0f5; border-radius: 20px; font-weight: 800; font-size: 18px; color: #333; cursor: pointer; transition: all 0.1s ease; -webkit-tap-highlight-color: transparent; }
+        .user-btn { 
+            width: 100%; padding: 22px; margin: 12px 0; border: none; 
+            background: #f0f0f5; border-radius: 20px; font-weight: 800; 
+            font-size: 18px; color: #333; cursor: pointer; transition: 0.1s; 
+            -webkit-tap-highlight-color: transparent; outline: none;
+        }
         .user-btn:active { background: #00B956 !important; color: #fff !important; transform: scale(0.95); }
         .subtitle { font-size: 10px; color: #bbb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; display: block; }
     </style>
@@ -20,15 +25,34 @@
         <button class="user-btn" onclick="loginUser('Никита')">НИКИТА</button>
         <button class="user-btn" onclick="loginUser('Иван')">ИВАН</button>
     </div>
+
     <script>
         function loginUser(name) {
-            localStorage.setItem('currentUser', name);
-            const now = new Date();
-            const key = name + "_" + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDate();
-            let schedule = JSON.parse(localStorage.getItem('Inf_Schedule')) || {};
-            schedule[key] = 'work';
-            localStorage.setItem('Inf_Schedule', JSON.stringify(schedule));
-            window.location.href = 'work.html';
+            try {
+                // 1. Сохраняем имя
+                localStorage.setItem('currentUser', name);
+                
+                // 2. Ставим отметку в график
+                const now = new Date();
+                const key = name + "_" + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDate();
+                
+                let sch = {};
+                const savedSch = localStorage.getItem('Inf_Schedule');
+                if (savedSch) {
+                    sch = JSON.parse(savedSch);
+                }
+                
+                sch[key] = 'work';
+                localStorage.setItem('Inf_Schedule', JSON.stringify(sch));
+                
+                // 3. Перенаправление
+                console.log("Вход выполнен для: " + name);
+                window.location.href = 'work.html';
+                
+            } catch (e) {
+                console.error(e);
+                alert("Ошибка при входе. Попробуйте очистить вкладки браузера. Текст ошибки: " + e.message);
+            }
         }
     </script>
 </body>

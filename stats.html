@@ -4,50 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>График - ИНФИНИТИ</title>
-    <link rel="stylesheet" href="style.css">
     <style>
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr); /* 7 колонок */
-            gap: 5px;
-            margin-top: 15px;
-        }
+        body { font-family: -apple-system, sans-serif; background: #fff; margin: 0; padding: 15px; }
+        .container { max-width: 400px; margin: 0 auto; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
         .day-card {
-            aspect-ratio: 1/1; /* Квадратные ячейки */
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 10px;
-            font-weight: bold;
-            color: white;
-            background: #ff4d4d; /* По умолчанию - красный (выходной) */
-            position: relative;
+            aspect-ratio: 1/1; border-radius: 8px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-size: 10px; font-weight: bold;
+            color: white; background: #ff4d4d; cursor: pointer;
         }
-        .day-card.work {
-            background: #00B956; /* Зеленый (работал) */
-        }
+        .day-card.work { background: #00B956; }
         .day-card span { font-size: 8px; opacity: 0.8; margin-bottom: 2px; }
         .day-card b { font-size: 9px; }
-        
-        .header-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-size: 10px;
-            color: #888;
-            margin-bottom: 5px;
-        }
-        .total-info {
-            background: #111;
-            color: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin-top: 20px;
-            text-align: center;
-        }
+        .header-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 10px; color: #888; margin-bottom: 5px; }
+        .total-info { background: #111; color: white; padding: 15px; border-radius: 15px; margin-top: 20px; text-align: center; }
         .total-info h2 { color: #00B956; margin: 0; font-size: 24px; }
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-box { background: #fff; width: 280px; padding: 20px; border-radius: 20px; color: #333; }
+        .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -56,61 +30,73 @@
             <button onclick="window.location.href='work.html'" style="background:none; border:none; color:#00B956; font-weight:bold; cursor:pointer;">← НАЗАД</button>
             <h3 id="user-title">ГРАФИК</h3>
         </div>
+        <div class="header-days"><div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div></div>
+        <div id="calendar" class="calendar-grid"></div>
+        <div class="total-info"><span>ИТОГО ЗА МЕСЯЦ:</span><h2 id="month-total">0 ₽</h2></div>
+    </div>
 
-        <div class="card" style="padding: 10px;">
-            <div class="header-days">
-                <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
-            </div>
-            <div id="calendar" class="calendar-grid">
-                </div>
-        </div>
-
-        <div class="total-info">
-            <span>ИТОГО ЗА МЕСЯЦ:</span>
-            <h2 id="month-total">0 ₽</h2>
+    <div id="modal" onclick="closeModal()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <h3 id="m-date" style="color:#00B956; margin-top:0;">Детали</h3>
+            <div class="row"><span>Сим-карты:</span> <b id="m-sim">0 ₽</b></div>
+            <div class="row"><span>Пленки:</span> <b id="m-pl">0 ₽</b></div>
+            <div class="row"><span>Товар:</span> <b id="m-tov">0 ₽</b></div>
+            <div class="row"><span>Услуги:</span> <b id="m-usl">0 ₽</b></div>
+            <div class="row" style="border:none; font-weight:bold; font-size:16px;"><span>ИТОГО:</span> <b id="m-total">0 ₽</b></div>
+            <button onclick="closeModal()" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:none; background:#111; color:#fff; cursor:pointer;">ЗАКРЫТЬ</button>
         </div>
     </div>
 
     <script>
-        const name = localStorage.getItem('currentUser') || "Сотрудник";
-        document.getElementById('user-title').innerText = "ГРАФИК: " + name;
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-        // Загружаем данные о сменах и зарплате
-        const scheduleDB = JSON.parse(localStorage.getItem('Inf_DB_Schedule')) || {};
-        const salaryDB = JSON.parse(localStorage.getItem('Inf_Final_V4')) || {}; // Берем данные из нашего умного блокнота
-        
-        const calendarEl = document.getElementById('calendar');
-        let monthSum = 0;
+        window.onload = function() {
+            const name = localStorage.getItem('currentUser') || "Сотрудник";
+            document.getElementById('user-title').innerText = "ГРАФИК: " + name;
 
-        // Получаем текущую дату для построения сетки
-        const now = new Date();
-        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        
-        // Определяем, с какого дня недели начинается месяц (чтобы сделать отступы если нужно)
-        // Для простоты заполним просто 31 день или 1-30
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dayCard = document.createElement('div');
-            dayCard.className = 'day-card';
+            const calendarEl = document.getElementById('calendar');
+            const dataDB = JSON.parse(localStorage.getItem('Inf_Data')) || {};
+            const schDB = JSON.parse(localStorage.getItem('Inf_Schedule')) || {};
             
-            // Проверяем: работал ли сотрудник (есть ли запись в расписании)
-            const isWorkDay = scheduleDB[name] && scheduleDB[name][i] === 'work';
-            const daySalary = (salaryDB[i] && salaryDB[i].cash) ? salaryDB[i].cash : 0;
+            let monthSum = 0;
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            if (isWorkDay) {
-                dayCard.classList.add('work');
-                monthSum += daySalary;
+            for (let i = 1; i <= daysInMonth; i++) {
+                const key = name + "_" + year + "_" + month + "_" + i;
+const dayData = dataDB[key];
+                const isWork = schDB[key] === 'work';
+
+                const card = document.createElement('div');
+                card.className = 'day-card';
+                
+                let cash = 0;
+                if (dayData) { cash = dayData.total || 0; }
+
+                if (isWork || cash > 0) {
+                    card.classList.add('work');
+                    monthSum += isNaN(Number(cash)) ? 0 : Number(cash);
+                }
+
+                card.innerHTML = "<span>" + i + "</span><b>" + (cash > 0 ? cash + "₽" : (isWork ? "0₽" : "ВЫХ")) + "</b>";
+                
+                card.onclick = function() {
+                    if (dayData) {
+                        document.getElementById('m-date').innerText = i + " число";
+                        document.getElementById('m-sim').innerText = (dayData.sim || 0) + " ₽";
+                        document.getElementById('m-pl').innerText = (dayData.plenki || 0) + " ₽";
+                        document.getElementById('m-tov').innerText = (dayData.tovar || 0) + " ₽";
+                        document.getElementById('m-usl').innerText = (dayData.uslugi || 0) + " ₽";
+                        document.getElementById('m-total').innerText = cash + " ₽";
+                        document.getElementById('modal').style.display = 'flex';
+                    }
+                };
+                calendarEl.appendChild(card);
             }
-
-            dayCard.innerHTML = `
-                <span>${i}</span>
-                <b>${daySalary > 0 ? daySalary + '₽' : (isWorkDay ? '0₽' : 'ВЫХ')}</b>
-            `;
-            
-            calendarEl.appendChild(dayCard);
-        }
-
-        document.getElementById('month-total').
-innerText = monthSum + " ₽";
+            document.getElementById('month-total').innerText = monthSum + " ₽";
+        };
     </script>
 </body>
 </html>
