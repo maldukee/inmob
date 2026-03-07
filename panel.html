@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFINITY ADMIN</title>
+    <style>
+        :root { --green: #00B956; --dark: #1a1a1a; --bg: #f8f9fa; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 480px; margin: 0 auto; }
+        
+        /* Кнопки */
+        .btn { border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .btn-main { background: var(--green); color: white; width: 100%; padding: 16px; font-size: 16px; margin-bottom: 20px; }
+        .btn-main:active { opacity: 0.8; transform: scale(0.98); }
+        .btn-outline { background: #eee; color: #666; padding: 8px 16px; font-size: 13px; }
+        .btn-save { background: var(--green); color: white; padding: 6px 10px; border-radius: 8px; }
+
+        /* Карточки */
+        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 15px; }
+        .plan-header { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; }
+        
+        input[type="number"] { width: 70px; padding: 8px; border-radius: 10px; border: 1px solid #ddd; text-align: center; font-size: 16px; outline: none; }
+        .plan-input { background: #333; border: 1px solid #444; color: var(--green); font-weight: bold; }
+
+        /* Список сотрудников */
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f2f2f2; cursor: pointer; }
+        .user-row:last-child { border-bottom: none; }
+        .user-name { font-weight: 500; font-size: 16px; }
+        .user-money { color: var(--green); font-weight: 700; font-size: 16px; }
+
+        /* Итог */
+        .total-box { background: var(--dark); color: white; padding: 25px; border-radius: 24px; text-align: center; }
+        .total-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .total-sum { font-size: 32px; font-weight: 800; color: var(--green); margin-top: 5px; display: block; }
+
+        /* Модальное окно правки */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; width: 85%; max-width: 380px; border-radius: 24px; padding: 20px; max-height: 70vh; overflow-y: auto; }
+        .edit-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <a href="admin.html" style="text-decoration:none; color:var(--green); font-weight:600; font-size:14px;">← МЕНЮ</a>
+        <button class="btn btn-outline" onclick="load()">ОБНОВИТЬ 🔄</button>
+    </div>
+
+    <div class="card plan-header">
+        <div>
+            <div style="font-size:10px; color:#888;">ПЛАН СИМ</div>
+            <input type="number" id="p_val" class="plan-input" style="margin-top:5px;">
+        </div>
+        <button class="btn btn-save" onclick="savePlan()">ОК</button>
+    </div>
+
+    <div class="card" id="list_container">
+        <div id="list_body" style="text-align:center; color:#999; padding:10px;">Нажмите обновить для загрузки</div>
+    </div>
+
+    <div class="total-box">
+        <span class="total-label">Итого по сети</span>
+        <span id="grand_total" class="total-sum">0 ₽</span>
+    </div>
+</div>
+
+<div id="modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 id="m_user" style="margin:0 0 15px 0; color:var(--dark);"></h3>
+        <div id="m_list"></div>
+<button class="btn btn-main" style="margin-top:20px; background:#f2f2f2; color:#333;" onclick="closeModal()">ЗАКРЫТЬ</button>
+    </div>
+</div>
+
+<script>
+    // 1. План
+    function savePlan() {
+        const v = document.getElementById('p_val').value;
+        localStorage.setItem('Inf_Plan', v);
+        alert("План сохранен!");
+    }
+
+    // 2. Загрузка данных
+    function load() {
+        const body = document.getElementById('list_body');
+        const totalDisp = document.getElementById('grand_total');
+        
+        // Показываем текущий план
+        document.getElementById('p_val').value = localStorage.getItem('Inf_Plan') || 0;
+
+        const raw = localStorage.getItem('Inf_Data');
+        if (!raw || raw === "{}") {
+            body.innerHTML = "Данные не найдены.<br><small>Сохраните смену в блокноте.</small>";
+            return;
+        }
+
+        try {
+            const db = JSON.parse(raw);
+            let sums = {};
+            let totalNet = 0;
+
+            Object.keys(db).forEach(key => {
+                const name = key.split('_')[0];
+                const val = Number(db[key].total || 0);
+                if (name && name !== "undefined") {
+                    sums[name] = (sums[name] || 0) + val;
+                    totalNet += val;
+                }
+            });
+
+            let html = "";
+            Object.keys(sums).forEach(n => {
+                html += `
+                <div class="user-row" onclick="openEdit('${n}')">
+                    <span class="user-name">👤 ${n}</span>
+                    <span class="user-money">${sums[n].toLocaleString()} ₽</span>
+                </div>`;
+            });
+
+            body.innerHTML = html || "Список сотрудников пуст";
+            totalDisp.innerText = totalNet.toLocaleString() + " ₽";
+
+        } catch (e) {
+            body.innerHTML = "Ошибка базы: " + e.message;
+        }
+    }
+
+    // 3. Редактирование
+    function openEdit(name) {
+        const db = JSON.parse(localStorage.getItem('Inf_Data') || '{}');
+        const mList = document.getElementById('m_list');
+        document.getElementById('m_user').innerText = name;
+        mList.innerHTML = "";
+
+        Object.keys(db).forEach(key => {
+            if (key.startsWith(name + "_")) {
+                const parts = key.split('_');
+                const date = parts[3] + "." + (Number(parts[2]) + 1);
+                
+                const div = document.createElement('div');
+                div.className = 'edit-row';
+                div.innerHTML = `
+                    <span style="font-size:13px; font-weight:bold;">${date}</span>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="number" id="in-${key}" value="${db[key].total}" style="width:70px; height:30px;">
+                        <button class="btn btn-save" onclick="saveOne('${key}')">💾</button>
+                        <button class="btn btn-save" style="background:#ff4444;" onclick="deleteOne('${key}')">🗑️</button>
+                    </div>`;
+                mList.appendChild(div);
+            }
+        });
+
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function saveOne(key) {
+        let db = JSON.parse(localStorage.getItem('Inf_Data'));
+        const newVal = document.getElementById('in-' + key).value;
+        db[key].total = Number(newVal);
+        localStorage.setItem('Inf_Data', JSON.stringify(db));
+        load(); // Обновить главный список
+        alert("Изменено!");
+    }
+
+    function deleteOne(key) {
+        if (confirm("Удалить запись за этот день?")) {
+            let db = JSON.parse(localStorage.getItem('Inf_Data'));
+            delete db[key];
+            localStorage.setItem('Inf_Data', JSON.stringify(db));
+            
+            const name = key.split('_')[0];
+            const remains = Object.keys(db).filter(k => k.startsWith(name + "_"));
+            if (remains.length === 0) closeModal(); else openEdit(name);
+            
+            load();
+        }
+    }
+
+    function closeModal() { document.getElementById('modal').
+style.display = 'none'; }
+
+    // Автозагрузка при открытии
+    window.onload = load;
+</script>
+
+</body>
+</html>

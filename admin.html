@@ -3,173 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>УПРАВЛЕНИЕ - INFINITY</title>
+    <title>ВХОД</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
-        .container { max-width: 500px; margin: 0 auto; display: none; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card { background: #fff; border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; }
-        .user-info { display: flex; justify-content: space-between; align-items: center; }
-        .user-name { font-weight: 800; font-size: 16px; text-transform: uppercase; }
-        .user-total { color: #00B956; font-weight: 900; font-size: 18px; }
-        .stats-summary { background: #111; color: white; padding: 25px; border-radius: 25px; text-align: center; margin-top: 20px; }
-        .stats-summary h2 { color: #00B956; margin: 5px 0 0 0; font-size: 32px; }
-        
-        /* Модалка правки */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; padding: 20px 0; }
-        .modal-content { background: #fff; width: 90%; max-width: 400px; margin: 0 auto; padding: 25px; border-radius: 30px; }
-        .day-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
-        .edit-input { width: 80px; padding: 8px; border: 2px solid #eee; border-radius: 10px; text-align: center; font-weight: bold; }
-        .btn-s { background: #00B956; color: white; border: none; padding: 10px; border-radius: 10px; }
-        .btn-d { background: #FF3B30; color: white; border: none; padding: 10px; border-radius: 10px; }
-        .close-btn { width: 100%; padding: 15px; background: #111; color: white; border: none; border-radius: 15px; margin-top: 20px; font-weight: bold; }
-        
-        /* Экран блокировки */
-        #lock-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
-        .pass-input { width: 150px; padding: 15px; font-size: 24px; text-align: center; border: 2px solid #ddd; border-radius: 15px; margin-bottom: 15px; letter-spacing: 5px; }
-        .pass-btn { background: #00B956; color: white; border: none; padding: 15px 30px; border-radius: 15px; font-weight: bold; font-size: 16px; }
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; width: 280px; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 18px; text-align: center; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #00B956; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div id="lock-screen">
-    <h1 style="font-size: 50px; margin-bottom: 10px;">🔒</h1>
-    <h3>Введите пароль админа</h3>
-    <input type="password" id="admin-password" class="pass-input" placeholder="****" inputmode="numeric">
-    <button class="pass-btn" onclick="checkPass()">ВОЙТИ</button>
-    <p id="error-msg" style="color: red; margin-top: 15px; display: none;">Неверный пароль!</p>
-    <a href="work.html" style="margin-top: 20px; color: #888; text-decoration: none;">Вернуться назад</a>
-</div>
-
-<div class="container" id="admin-ui">
-    <div class="header">
-        <a href="work.html" style="text-decoration:none; color:#00B956; font-weight:bold;">← НАЗАД</a>
-        <h3 style="margin:0;">АДМИН-ЦЕНТР</h3>
+    <div class="card">
+        <h2>🔒 Вход</h2>
+        <input type="password" id="psw" placeholder="****" inputmode="numeric">
+        <button onclick="go()">ВОЙТИ</button>
+        <p id="err" style="color:red; display:none;">Ошибка!</p>
     </div>
-    <div id="employees-list"></div>
-    <div class="stats-summary">
-        <span>Общий итог сети:</span>
-        <h2 id="network-total">0 ₽</h2>
-    </div>
-</div>
-
-<div id="modal">
-    <div class="modal-content">
-        <h2 id="edit-title" style="margin-top:0;">Правка</h2>
-        <div id="days-editor"></div>
-        <button class="close-btn" onclick="closeModal()">ЗАКРЫТЬ</button>
-    </div>
-</div>
-
-<script>
-    const user = localStorage.getItem('currentUser') || "";
-    const ADMIN_PASS = "3257"; // Твой пароль
-
-    // 1. Проверка: Никита ли это вообще?
-    if (user.toLowerCase() !== 'никита') {
-        document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>Доступ запрещен</h2><a href="index.html">На главную</a></div>';
-}
-
-    // 2. Функция проверки пароля
-    function checkPass() {
-        const entered = document.getElementById('admin-password').value;
-        const error = document.getElementById('error-msg');
-        
-        if (entered === ADMIN_PASS) {
-            document.getElementById('lock-screen').style.display = 'none';
-            document.getElementById('admin-ui').style.display = 'block';
-            render();
-        } else {
-            error.style.display = 'block';
-            document.getElementById('admin-password').value = '';
-        }
-    }
-
-    function render() {
-        const list = document.getElementById('employees-list');
-        const db = JSON.parse(localStorage.getItem('Inf_Data')) || {};
-        const sums = {};
-        let grandTotal = 0;
-
-        list.innerHTML = '';
-
-        Object.keys(db).forEach(key => {
-            const name = key.split('_')[0];
-            const val = Number(db[key].total || 0);
-            if (name) {
-                sums[name] = (sums[name] || 0) + val;
-                grandTotal += val;
+    <script>
+        function go() {
+            if(document.getElementById('psw').value === "3257") {
+                window.location.href = "panel.html";
+            } else {
+                document.getElementById('err').style.display = 'block';
             }
-        });
-
-        const names = Object.keys(sums);
-        if (names.length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">База данных пуста</div>';
         }
-
-        names.forEach(n => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="user-info">
-                    <span class="user-name">${n}</span>
-                    <span class="user-total">${sums[n].toLocaleString()} ₽</span>
-                </div>`;
-            card.onclick = () => openEmployee(n);
-            list.appendChild(card);
-        });
-
-        document.getElementById('network-total').innerText = grandTotal.toLocaleString() + " ₽";
-    }
-
-    function openEmployee(name) {
-        const db = JSON.parse(localStorage.getItem('Inf_Data')) || {};
-        document.getElementById('edit-title').innerText = "Правка: " + name;
-        const editor = document.getElementById('days-editor');
-        editor.innerHTML = '';
-
-        const userKeys = Object.keys(db).filter(k => k.startsWith(name + "_"));
-        userKeys.sort().reverse().forEach(key => {
-            const p = key.split('_');
-            const dateStr = p[3] + "." + (Number(p[2]) + 1);
-            
-            const row = document.createElement('div');
-            row.className = 'day-row';
-            row.innerHTML = `
-                <span style="font-weight:bold;">${dateStr}</span>
-                <div style="display:flex; gap:5px; align-items:center;">
-                    <input type="number" class="edit-input" id="val-${key}" value="${db[key].total}">
-                    <button class="btn-s" onclick="saveChange('${key}')">💾</button>
-                    <button class="btn-d" onclick="deleteEntry('${key}')">🗑️</button>
-                </div>`;
-            editor.appendChild(row);
-        });
-        document.getElementById('modal').style.display = 'block';
-    }
-
-    function saveChange(key) {
-        let db = JSON.parse(localStorage.getItem('Inf_Data')) || {};
-        const newVal = document.getElementById('val-' + key).value;
-        if (db[key]) {
-            db[key].total = Number(newVal);
-            localStorage.setItem('Inf_Data', JSON.stringify(db));
-            alert("Обновлено!");
-            render();
-            openEmployee(key.split('_')[0]);
-        }
-    }
-
-    function deleteEntry(key) {
-        if (confirm("Удалить запись?")) {
-            let db = JSON.parse(localStorage.getItem('Inf_Data')) || {};
-            delete db[key];
-            localStorage.setItem('Inf_Data', JSON.stringify(db));
-            render();
-            openEmployee(key.split('_')[0]);
-        }
-    }
-
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-</script>
+    </script>
 </body>
 </html>

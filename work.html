@@ -9,17 +9,29 @@
         .container { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .user-info { font-weight: 900; font-size: 13px; text-transform: uppercase; color: #888; }
+        
+        /* Поле ввода */
         .note-card { background: #f9f9f9; border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid #eee; }
         #note-area { width: 100%; height: 180px; border: none; background: transparent; font-size: 16px; outline: none; resize: none; color: #333; font-family: inherit; }
+        
+        /* Блок прогресса плана */
+        .plan-status { background: #f0f0f0; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+        .plan-text { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+        .progress-bg { background: #ddd; height: 10px; border-radius: 5px; overflow: hidden; }
+        .progress-bar { background: #00B956; height: 100%; width: 0%; transition: 0.3s; }
+        .plan-finish { color: #00B956; font-size: 10px; margin-top: 5px; display: block; text-align: center; font-weight: bold; }
+
         .salary-badge { background: #111; color: #fff; padding: 20px; border-radius: 20px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .salary-main b { font-size: 34px; color: #00B956; display: block; line-height: 1; margin-top: 5px; }
-        .btn-group { display: flex; gap: 10px; }
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
         .btn { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; text-align: center; text-decoration: none; }
         .btn-save { background: #00B956; color: white; }
-        .btn-stats { background: #f0f0f0; color: #666; display: flex; align-items: center; justify-content: center; }
+        .btn-stats { background: #f0f0f0; color: #666; }
     </style>
 </head>
 <body>
+
 
 <div class="container">
     <div class="header">
@@ -31,9 +43,20 @@
         <textarea id="note-area" placeholder="чехол 500, yota, мпл..." oninput="calculate()"></textarea>
     </div>
 
+    <div class="plan-status" id="plan-widget">
+        <div class="plan-text">
+            <span>Прогресс по СИМ</span>
+            <span id="plan-numbers">0 / 0</span>
+        </div>
+        <div class="progress-bg">
+            <div class="progress-bar" id="p-bar"></div>
+        </div>
+        <span class="plan-finish" id="plan-hint">Установите план в админке</span>
+    </div>
+
     <div class="salary-badge">
         <div class="salary-main">
-            <span style="font-size: 9px; color: #555; font-weight: bold;">ЗП СЕГОДНЯ</span>
+            <span style="font-size: 9px; color: #555; font-weight: bold;">ИТОГО К ВЫПЛАТЕ</span>
             <b id="total-amount">0 ₽</b>
         </div>
     </div>
@@ -42,7 +65,7 @@
         <button type="button" class="btn btn-save" onclick="saveData()">Записать</button>
         <a href="stats.html" class="btn btn-stats">График</a>
     </div>
-    
+
     <div id="admin-zone"></div>
 </div>
 
@@ -55,67 +78,108 @@
         return user + "_" + d.getFullYear() + "_" + d.getMonth() + "_" + d.getDate();
     }
 
-    // Загрузка текста при входе
     window.onload = function() {
         const key = getTodayKey();
         const saved = JSON.parse(localStorage.getItem('Inf_Data')) || {};
         if (saved[key]) {
             document.getElementById('note-area').value = saved[key].rawText || "";
-            calculate();
+}
+        calculate();
+
+        // Показываем кнопку админа если это Никита
+        if (user.toLowerCase() === 'никита') {
+            document.getElementById('admin-zone').innerHTML = `
+                <a href="admin.html" class="btn" style="background:#111; color:#00B956; display:block; margin-top:5px; text-decoration:none;">⚙️ Админ-панель</a>
+            `;
         }
     };
 
     function calculate() {
         const text = document.getElementById('note-area').value.toLowerCase();
-        let report = { plenki: 0, uslugi: 0, tovar: 0, sim: 0, total: 0, rawText: text };
+        let report = { plenki: 0, uslugi: 0, tovar: 0, simCash: 0, simCount: 0, total: 0, rawText: text };
 
-        // 1. Пленки (250 нал / 200 бн)
+        // Расчет категорий
         report.plenki += (text.match(/пленка нал/g) || []).length * 250;
         report.plenki += (text.match(/пленка бн/g) || []).length * 200;
         
-        // 2. Услуги (50%)
-        const uslPattern = /(?:нс|настр|услуга)\s*(\d+)/g;
+        const uslPattern = /(?:нс|настр|настройка|услуга)\s*(\d+)/g;
         let m; while ((m = uslPattern.exec(text)) !== null) { report.uslugi += Math.round(parseInt(m[1]) * 0.5); }
 
-        // 3. Товар (10%)
         const tovPattern = /(?:кабель|сзу|азу|бзу|повербанк|чехол|держатель|часы|зарядка для часов|батарейка|батарейки|мышка|попсокет|картхолдер|наушники)\s*(\d+)/g;
         let t; while ((t = tovPattern.exec(text)) !== null) { report.tovar += Math.round(parseInt(t[1]) * 0.1); }
 
-        // 4. Сим-карты
-        report.sim += (text.
-match(/минимум(?!\s*плюс|\s*\+|\s*plus)|кидс|kids|мпл|клон/g) || []).length * 100;
-        report.sim += (text.match(/интернет|35гб|yota|минимум\s*плюс|минимум\s*\+|минимум\+/g) || []).length * 300;
-        report.sim += (text.match(/максимум/g) || []).length * 500;
-        report.sim += (text.match(/вип|vip|60гб|100гб|300гб|премиум/g) || []).length * 600;
+        const s1 = (text.match(/минимум(?!\s*плюс|\s*\+|\s*plus)|кидс|kids|мпл|клон/g) || []).length;
+        const s2 = (text.match(/интернет|35гб|yota|минимум\s*плюс|минимум\s*\+|минимум\+/g) || []).length;
+        const s3 = (text.match(/максимум/g) || []).length;
+        const s4 = (text.match(/вип|vip|60гб|100гб|300гб|премиум/g) || []).length;
 
-        report.total = report.plenki + report.uslugi + report.tovar + report.sim;
-        document.getElementById('total-amount').innerText = report.total + " ₽";
+        report.simCount = s1 + s2 + s3 + s4;
+        report.simCash = (s1 * 100) + (s2 * 300) + (s3 * 500) + (s4 * 600);
+
+        let subTotal = report.plenki + report.uslugi + report.tovar + report.simCash;
+
+        // ЛОГИКА ПЛАНА
+        const plan = Number(localStorage.getItem('Inf_Plan')) || 0;
+        const bar = document.getElementById('p-bar');
+        const num = document.getElementById('plan-numbers');
+        const hint = document.getElementById('plan-hint');
+
+        if (plan > 0) {
+            let proc = (report.simCount / plan) * 100;
+            if (proc > 100) proc = 100;
+            bar.style.width = proc + "%";
+            num.innerText = report.simCount + " / " + plan;
+
+            if (report.simCount >= plan) {
+                subTotal = Math.round(subTotal * 1.2);
+                hint.innerText = "🔥 ПЛАН ВЫПОЛНЕН! БОНУС +20% ВКЛЮЧЕН";
+                hint.style.color = "#00B956";
+                bar.style.background = "#00B956";
+            } else {
+                let left = plan - report.simCount;
+                hint.innerText = "Осталось еще " + left + " сим-карт до бонуса";
+                hint.style.color = "#888";
+                bar.style.background = "#f39c12"; // Оранжевый пока не выполнен
+            }
+        }
+
+        report.total = subTotal;
+        document.getElementById('total-amount').innerText = report.total.toLocaleString() + " ₽";
         return report;
     }
 
     function saveData() {
         const report = calculate();
         const key = getTodayKey();
-        
         let data = JSON.parse(localStorage.getItem('Inf_Data')) || {};
         data[key] = report;
         localStorage.setItem('Inf_Data', JSON.stringify(data));
-
-        let sch = JSON.parse(localStorage.getItem('Inf_Schedule')) || {};
-        sch[key] = 'work';
-        localStorage.setItem('Inf_Schedule', JSON.stringify(sch));
-
         alert("✅ СОХРАНЕНО: " + report.total + " ₽");
     }
-// Проверка на админа (Никита)
-    if (user.toLowerCase() === 'никита') {
-        const adminZone = document.getElementById('admin-zone');
-        adminZone.innerHTML = `
-            <a href="admin.html" class="btn" style="background: #111; color: #00B956; margin-top: 10px; width: 100%; display: block; box-sizing: border-box; text-decoration: none;">
-                ⚙️ ПАНЕЛЬ АДМИНИСТРАТОРА
-            </a>
-        `;
+function autoClear() {
+    const now = new Date();
+    const hour = now.getHours();
+
+    // Если время меньше 10 утра ИЛИ больше 22 вечера
+    if (hour < 10 || hour >= 22) {
+        // Находим все инпуты (числа и текст) и очищаем их визуально
+        const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
+        inputs.forEach(input => {
+            input.value = ""; 
+        });
+        
+        // Также очищаем итоговые текстовые поля, если они есть
+        const totalFields = document.querySelectorAll('.total-sum, #result');
+        totalFields.forEach(field => {
+            field.innerText = "0 ₽";
+        });
+
+        console.log("Рабочее время окончено. Поля очищены для безопасности.");
     }
+}
+
+// Запускаем проверку сразу при открытии страницы
+window.addEventListener('load', autoClear);
 </script>
 </body>
 </html>
